@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
-
+import os
 ### USER CRUD ###
 
 def get_user_by_id(session: Session, user_id: int):
@@ -42,7 +42,7 @@ def delete_user(session: Session, user_id: int):
 ### DEVICE CRUD ###
 
 def get_device(session: Session, device_id: int):
-	return session.query(models.Device).filter_by(id=dev_id).first()
+	return session.query(models.Device).filter_by(id=device_id).first()
 
 def get_devices(session: Session, verified: bool = True, skip: int = 0, limit: int = 50):
 	return session.query(models.Device).filter_by(verified=verified).offset(skip).limit(limit).all()
@@ -62,7 +62,7 @@ def verify_device(session: Session, device_id: int):
 	session.refresh(device)
 	return device
 
-def verify_users(session: Session, device_ids: list(int)):
+def verify_devices(session: Session, device_ids: list(int)):
 	devices = []
 	for device_id in device_ids:
 		device = verify_device(session, device_id)
@@ -75,11 +75,25 @@ def delete_device(session: Session, device_id: int):
 	session.commit()
 
 ### FILE CRUD ###
+def get_file(session: Session, file_id: int):
+	return session.query(models.File).filter_by(id=file_id).first()
 
-def create_file(session: Session, file: schemas.FileCreate, path: str, device_id: int):
+def create_file(session: Session, file: schemas.FileCreate, device_id: int):
+	path = os.path.join(str(device_id), file.extension, file.filename)
 	db_file = models.File(**file.dict(), local_path=path, device_id=device_id)
-	
-def create_files():
-	pass
-def delete_files():
-	pass
+	session.add(db_file)
+	session.commit()
+	session.refresh(db_file)
+	return db_file
+
+def create_files(session: Session, files: list(schemas.FileCreate), device_id: int):
+	files_lst = []
+	for file in files:
+		db_file = create_file(session, file, device_id)
+		files_lst.append(File)
+	return files_lst
+
+def delete_files(session: Session, file_id):
+	file = get_file(session, file_id)
+	session.delete(file)
+	session.commit()
