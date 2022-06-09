@@ -17,7 +17,7 @@ class DeviceBase(BaseModel):
 	name: str
 
 class DeviceCreate(DeviceBase):
-	token: str 
+	password: str 
 
 class Device(DeviceBase):
 	id: int 
@@ -45,3 +45,8 @@ class File(FileBase):
 
 	class Config:
 		orm_mode = True
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+

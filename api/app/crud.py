@@ -44,6 +44,9 @@ def delete_user(session: Session, user_id: int):
 def get_device(session: Session, device_id: int):
 	return session.query(models.Device).filter_by(id=device_id).first()
 
+def get_device_by_name(session: Session, name: str):
+	return session.query(models.Device).filter_by(name=name).first()
+
 def get_devices(session: Session, verified: bool = True, skip: int = 0, limit: int = 50):
 	return session.query(models.Device).filter_by(verified=verified).offset(skip).limit(limit).all()
 
