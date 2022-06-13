@@ -41,7 +41,7 @@ web-interface for touchscreen project
 		- request: Device
 		- response_model: list(Protocol)
 	- POST: /devices/run: 
-		- request: Protocol
+		- request: Protocol, Device
 		- response_model: Protocol
 
 - [ ] /api/app/routers/devices.py
