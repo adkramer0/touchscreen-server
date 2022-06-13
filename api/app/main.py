@@ -2,11 +2,12 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from .routers import users, devices
-from . import models
+from . import models, crud
 from .database import engine
-from .schemas import Token
+from .schemas import Token, UserCreate, DeviceCreate, User, Device
 from .utils import authenticate_user, authenticate_device, create_access_token
 from .dependencies import get_session
+
 app = FastAPI()
 
 models.Base.metadata.create_all(bind=engine)
@@ -35,3 +36,19 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessi
 	else:
 		raise HTTPException(status_code=400, detail='client scope unrecognized')
 	return {"access_token": access_token, "token_type": "bearer"}
+
+@app.post('/users/register', response_model=User)
+def register_user(user: UserCreate, session: Session = Depends(get_session)):
+	try:
+		new_user = crud.create_user(session, user)
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+	return new_user
+
+@app.post('/devices/register', response_model=Device)
+def register_user(device: DeviceCreate, session: Session = Depends(get_session)):
+	try:
+		new_device = crud.create_device(session, device)
+	except Exception as e:
+		raise HTTPException(status_code=500, detail=str(e))
+	return new_device
