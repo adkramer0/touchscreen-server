@@ -36,7 +36,7 @@ async def user_authorized(token: str = Depends(oauth2_scheme), session: Session 
         raise HTTPException(status_code=400, detail="Unverified user")
     return user
 async def device_authorized(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
-        credentials_exception = HTTPException(
+    credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},

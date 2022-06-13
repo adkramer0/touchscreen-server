@@ -7,7 +7,6 @@ import os
 import shutil
 import pyclbr
 SECRET_KEY = os.environ.get('SECRET_KEY')
-ALGORITHM = os.environ.get('ALGORITHM')
 
 def authenticate_user(session: Session, username: str, password: str):
 	user = get_user_by_username(session, username)
@@ -32,7 +31,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     else:
         expire = datetime.utcnow() + timedelta(minutes=1440)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY)
     return encoded_jwt
 
 async def save_files(files, device_id):

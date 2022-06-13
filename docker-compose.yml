@@ -10,12 +10,16 @@ services:
       - db
     expose:
       - "5000"
-  frontend:
-    build: ./frontend
-    container_name: ./frontend
-    restart: unless-stopped
-    depends_on:
-      - api
+    environment:
+      - SECRET_KEY=super_secret_key
+      - SQLALCHEMY_DATABASE_URL=postgresql+psycopg2://touchscreen:super_secret_password@localhost:5432/touchscreenDB
+
+#  frontend:
+#    build: ./frontend
+#    container_name: ./frontend
+#    restart: unless-stopped
+#    depends_on:
+#      - api
   nginx:
     image: nginx:alpine
     container_name: nginx
@@ -26,7 +30,7 @@ services:
       - 80:80
     depends_on:
       - api
-      - frontend
+#      - frontend
   database:
     image: postgres:12-alpine
     container_name: database
@@ -39,4 +43,5 @@ services:
 
 volumes:
   db-data
+  data-files
   
