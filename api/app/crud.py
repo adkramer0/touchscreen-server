@@ -27,7 +27,7 @@ def verify_user(session: Session, user_id: int):
 	session.refresh(user)
 	return user
 
-def verify_users(session: Session, user_ids: list(int)):
+def verify_users(session: Session, user_ids: list[int]):
 	users = []
 	for user_id in user_ids:
 		user = verify_user(session, user_id)
@@ -65,7 +65,7 @@ def verify_device(session: Session, device_id: int):
 	session.refresh(device)
 	return device
 
-def verify_devices(session: Session, device_ids: list(int)):
+def verify_devices(session: Session, device_ids: list[int]):
 	devices = []
 	for device_id in device_ids:
 		device = verify_device(session, device_id)
@@ -81,6 +81,12 @@ def delete_device(session: Session, device_id: int):
 def get_file(session: Session, file_id: int):
 	return session.query(models.File).filter_by(id=file_id).first()
 
+def get_file_by_name(session: Session, filename: str, device_id: int):
+	return session.query(models.File).filter_by(device_id=device_id, filename=filename).first()
+
+def get_files(session: Session, device_id: int):
+	return session.query(models.File).filter_by(device_id=device_id).all()
+
 def create_file(session: Session, file: schemas.FileCreate, device_id: int):
 	path = os.path.join(str(device_id), file.extension, file.filename)
 	db_file = models.File(**file.dict(), local_path=path, device_id=device_id)
@@ -89,14 +95,14 @@ def create_file(session: Session, file: schemas.FileCreate, device_id: int):
 	session.refresh(db_file)
 	return db_file
 
-def create_files(session: Session, files: list(schemas.FileCreate), device_id: int):
+def create_files(session: Session, files: list[schemas.FileCreate], device_id: int):
 	files_lst = []
 	for file in files:
 		db_file = create_file(session, file, device_id)
-		files_lst.append(File)
+		files_lst.append(db_file)
 	return files_lst
 
-def delete_files(session: Session, file_id):
+def delete_file(session: Session, file_id: int):
 	file = get_file(session, file_id)
 	session.delete(file)
 	session.commit()
