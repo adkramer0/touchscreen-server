@@ -46,9 +46,7 @@ class File(FileBase):
 	class Config:
 		orm_mode = True
 
-class Protocols(BaseModel):
-	protocols: list[str] = []
-	file_id: int
+
 
 
 class Token(BaseModel):
