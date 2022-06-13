@@ -12,7 +12,7 @@ def authenticate_user(session: Session, username: str, password: str):
 	if not user.verify_password(password):
 		return False
 	return user
-def authenticate_device(name: str, password: str):
+def authenticate_device(session: Session, name: str, password: str):
 	device = get_device_by_name(session, name)
 	if not device:
 		return False 
@@ -25,7 +25,10 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=60)
+        expire = datetime.utcnow() + timedelta(minutes=1440)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
+
+def extract_protocols(filename):
+	pass

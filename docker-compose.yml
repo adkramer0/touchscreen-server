@@ -8,7 +8,6 @@ services:
       - data-files:./
     depends_on:
       - db
-    env_file: ./api/.env
     expose:
       - "5000"
   frontend:

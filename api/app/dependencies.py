@@ -33,7 +33,7 @@ async def user_authorized(token: str = Depends(oauth2_scheme), session: Session 
     if user is None:
         raise credentials_exception
     if not user.verified:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Unverified user")
     return user
 async def device_authorized(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
         credentials_exception = HTTPException(
@@ -53,5 +53,5 @@ async def device_authorized(token: str = Depends(oauth2_scheme), session: Sessio
     if device is None:
         raise credentials_exception
     if not device.verified:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=400, detail="Unverified device")
     return device
