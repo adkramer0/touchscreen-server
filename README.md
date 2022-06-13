@@ -12,7 +12,7 @@ web-interface for touchscreen project
 		- request: DeviceCreate
 		- response_model: Device
 
-- [ ] /api/app/routers/users.py
+- [x] /api/app/routers/users.py
 	- GET: /devices
 		- parameter: (bool) verified
 		- response_model: list(Device)
@@ -44,13 +44,13 @@ web-interface for touchscreen project
 		- request: Protocol, Device
 		- response_model: Protocol
 
-- [ ] /api/app/routers/devices.py
+- [x] /api/app/routers/devices.py
 	- PUT: /status
 		- request: Device
 		- response_model: Device
 	- GET: /download/{device_id}/{extension}/{filename}
 		- response_class: FileResponse
-	- POST: /upload
+	- POST: /files/upload
 		- Files
 		- response_model: list(File)
 	- GET: /files
@@ -61,7 +61,7 @@ web-interface for touchscreen project
 	- socket: /new_protocol (data: extension, filename)
 	- socket: /run_protocol (data: filename, protocol_name, device_name, user_username)
 
-- [ ] /database/db.conf
+- [x] /database/db.conf
 - [ ] /frontend/*
 - [ ] /nginx/nginx.conf
 
