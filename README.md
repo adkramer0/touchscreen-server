@@ -4,7 +4,7 @@ web-interface for touchscreen project
 # TODO
 
 - [ ] /api/Dockerfile
-- [ ] /api/app/main.py
+- [x] /api/app/main.py
 	- POST: /users/register
 		- request: UserCreate
 		- response_model: User
