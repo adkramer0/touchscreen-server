@@ -1,4 +1,5 @@
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy.types import ARRAY
 from sqlalchemy.orm import relationship
 from passlib.context import CryptContext
 
@@ -43,8 +44,14 @@ class File(Base):
 	__tablename__ = 'files'
 	id = Column(Integer, primary_key=True, index=True)
 	filename = Column(String, index=True) # of form "filename.csv"
-	extension = Column(String, index=True) # of form "csv"
-	local_path = Column(String, unique=True) # of form /{device_id}/{extension}/{filename}
+	mongo_id = Column(String)
 	device_id = Column(Integer, ForeignKey('devices.id'))
 
 	device = relationship('Device', back_populates='files')
+
+class Protocol(Base):
+	__tablename__ = 'protocols'
+	id = Column(Integer, primary_key=True, index=True)
+	filename = Column(String, index=True) # of form "filename.csv"
+	mongo_id = Column(String)
+	protocols = Column(ARRAY(String))
