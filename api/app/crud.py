@@ -88,8 +88,7 @@ def get_files(session: Session, device_id: int):
 	return session.query(models.File).filter_by(device_id=device_id).all()
 
 def create_file(session: Session, file: schemas.FileCreate, device_id: int):
-	path = os.path.join(str(device_id), file.extension, file.filename)
-	db_file = models.File(**file.dict(), local_path=path, device_id=device_id)
+	db_file = models.File(**file.dict(), device_id=device_id)
 	session.add(db_file)
 	session.commit()
 	session.refresh(db_file)
@@ -106,3 +105,12 @@ def delete_file(session: Session, file_id: int):
 	file = get_file(session, file_id)
 	session.delete(file)
 	session.commit()
+### PROTOCOL CRUD ###
+def get_protocols(session: Session):
+	return session.query(models.Protocol).all()
+def create_protocol(session: Session, protocol: schemas.ProtocolCreate):
+	db_protocol = models.Protocol(**protocol.dict())
+	session.add(db_protocol)
+	session.commit()
+	session.refresh(db_protocol)
+	return db_protocol
