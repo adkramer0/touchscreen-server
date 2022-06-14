@@ -5,7 +5,7 @@ services:
     container_name: api
     restart: unless-stopped
     volumes:
-      - data-files:./
+      - data-files:/data-files
     depends_on:
       - db
     expose:
@@ -13,7 +13,6 @@ services:
     environment:
       - SECRET_KEY=super_secret_key
       - SQLALCHEMY_DATABASE_URL=postgresql+psycopg2://touchscreen:super_secret_password@localhost:5432/touchscreenDB
-
 #  frontend:
 #    build: ./frontend
 #    container_name: ./frontend
@@ -40,8 +39,17 @@ services:
     expose:
       - "5432"
     env_file: ./database/db.conf
+  datastore:
+    image: mongo:latest
+    environment: 
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=super_secret_password
+    expose:
+      - "27017"
+    volumes:
+      - datastore-data:/data/db
+
 
 volumes:
   db-data
-  data-files
-  
+  datastore-data
