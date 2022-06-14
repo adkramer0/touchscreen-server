@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from jose import jwt
 from .crud import get_user_by_username, get_device_by_name
-from .schemas import FileCreate
 from sqlalchemy.orm import Session
 import os
 import shutil
@@ -34,13 +33,12 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY)
     return encoded_jwt
 
-async def save_files(files, device_id):
+async def save_protocols(files):
 	files_ret = []
 	for file in files:
-		name = os.path.join(str(device_id), get_extension(file.filename), file.filename)
-		with open(name, 'wb') as f:
+		with open(file.filename, 'wb') as f:
 			shutil.copyfileobj(file.file, f)
-		files_ret.append(FileCreate(filename=file.filename, extension=get_extension(file.filename)))
+		files_ret.append(file.filename)
 	return files_ret
 
 
@@ -49,14 +47,21 @@ def get_extension(filename: str):
 	return extension
 
 async def extract_protocols(filename: str):
-	file = os.path.split(filename)
-	mod = file[1].split('.', 1)[0] # get files name without path, and without extension
-	path = file[0] # get files path
-	module = pyclbr.readmodule(mod, path) # load info on all classes in file
+	file = filename.split('.', 1)[0] # get files name without path, and without extension
+	module = pyclbr.readmodule(file) # load info on all classes in file
 	protocols = []
 	for k, v in module: # check if base class is Protocol in all classes
 		for v.super in v:
 			if v == 'Protocol':
 				protocols.append(k)
 	return protocols
+
+async def chunk_generator(grid_out):
+	while True:
+		chunk = await grid_out.readchunk()
+		if not chunk:
+			break
+		yield chunk
+		break
+
 
