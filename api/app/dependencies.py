@@ -2,9 +2,11 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 import os
+import motor.motor_asyncio
 from .database import SessionLocal
 from .crud import get_user_by_username, get_device
 from .schemas import User, Device
+from .datastore import db
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 SECRET_KEY = os.environ.get('SECRET_KEY')
 ALGORITHM = os.environ.get('ALGORITHM')
@@ -14,6 +16,9 @@ def get_session():
         yield session
     finally:
         session.close()
+def get_fs():
+    fs = motor.motor_asyncio.AsyncIOMotorGridFSBucket(db)
+    return fs
 
 async def user_authorized(token: str = Depends(oauth2_scheme), session: Session = Depends(get_session)):
     credentials_exception = HTTPException(
