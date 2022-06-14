@@ -31,7 +31,8 @@ class Device(DeviceBase):
 
 class FileBase(BaseModel):
 	filename: str 
-	extension: str
+	mongo_id: str
+
 
 
 
@@ -40,13 +41,25 @@ class FileCreate(FileBase):
 
 class File(FileBase):
 	id: int 
-	local_path: int 
 	device_id: int
 
 	class Config:
 		orm_mode = True
 
 
+class ProtocolBase(BaseModel):
+	filename: str
+	mongo_id: str
+	protocols: list[str]
+
+class ProtocolCreate(ProtocolBase):
+	pass 
+
+class Protocol(ProtocolBase):
+	id: int
+
+	class Config:
+		orm_mode = True
 
 
 class Token(BaseModel):
