@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi.responses import StreamingResponse
 from .. import dependencies, crud, schemas, utils
-
+from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 router = APIRouter(prefix='/users')
 
 @router.get('/devices', response_model=list[schemas.Device])
@@ -12,22 +12,25 @@ async def get_devices(verified: bool, user: schemas.User = Depends(dependencies.
 async def get_users(verified: bool, user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session)):
 	return crud.get_users(session, verified)
 
-@router.post('/upload', response_model=list[schemas.File])
-async def upload_files(files: list[UploadFile], devices: list[schemas.Device], user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session)):
-	all_files = []
-	for device in devices:
-		files_created = await utils.save_files(files, device.id)
-		new_files = crud.create_files(session, files_created, device.id)
-		all_files.extend(new_files)
-	return all_files
+
+@router.post('/upload', response_model=list[schemas.Protocol])
+async def upload_protocols(files: list[UploadFile], user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session), fs: AsyncIOMotorGridFSBucket = Depends(dependencies.get_fs)):
+	files_created = []
+	file_names = await utils.save_protocols(files)
+	async for file in file_names:
+		file_id = await fs.upload_from_stream(file.filename, file.file)
+		protocols = await utils.extract_protocols(file)
+		file_created = schemas.ProtocolCreate(filename=file, mongo_id=file_id, protocols=protocols)
+		new_file = crud.create_protocol(session, file_created)
+		file_created.append(new_file)
+	return files_created
 
 
-@router.get('/download/{device_id}/{filename}', response_class=FileResponse)
-async def download_file(device_id: int, filename: str, user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session)):
-	file = crud.get_file_by_name(session, filename, device_id)
-	if file:
-		return file.local_path
-	raise HTTPException(status_code=404, detail='could not find file')
+
+@router.get('/download/{mongo_id}', response_class=StreamingResponse)
+async def download_file(mongo_id: str, str, user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session), fs: AsyncIOMotorGridFSBucket = Depends(dependencies.get_fs)):
+	grid_out = await fs.open_download_stream(mongo_id)
+	return utils.chunk_generator(grid_out)
 
 
 @router.put('/devices/verify', response_model=list[schemas.Device])
@@ -54,15 +57,11 @@ async def remove_users(users: list[schemas.User], user: schemas.User = Depends(d
 	for c_user in users:
 		crud.delete_user(sessioin, c_user.id) 
 	return users
-
-@router.get('/protocols')
-async def get_protocols(file: schemas.File, user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session)):
-	protocols = await utils.extract_protocols(file.local_path)
-	return protocols
-
+"""
 @router.post('devices/run')
 async def run_protocol(protocol: str, file: schemas.File, user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session)):
 	protocols = await utils.extract_protocols(file.local_path)
 	if protocol in protocols:
 		raise HTTPException(status_code=404, detail='protocol not found')
 	return protocol
+"""
