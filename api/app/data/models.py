@@ -12,9 +12,10 @@ class User(Base):
 	id = Column(Integer, primary_key=True, index=True)
 	username = Column(String, unique=True, index=True)
 	password = Column(String)
+	email = Column(String, unique=True)
 	verified = Column(Boolean, default=False)
 
-	def __init__(self, username: str, password: str, verified: bool = False):
+	def __init__(self, username: str, password: str, email: str, verified: bool = False):
 		self.username = username
 		self.password = pwd_context.hash(password)
 		self.verified = verified
@@ -25,7 +26,7 @@ class User(Base):
 class Device(Base):
 	__tablename__ = 'devices'
 	id = Column(Integer, primary_key=True, index=True)
-	name = Column(String, unique=True, index=True)
+	name = Column(String)
 	password = Column(String)
 	verified = Column(Boolean, default=False, index=True)
 	status = Column(String, index=True)
@@ -43,8 +44,8 @@ class Device(Base):
 class File(Base):
 	__tablename__ = 'files'
 	id = Column(Integer, primary_key=True, index=True)
-	filename = Column(String, index=True) # of form "filename.csv"
-	mongo_id = Column(String)
+	filename = Column(String, index=True)
+	content_id = Column(String)
 	device_id = Column(Integer, ForeignKey('devices.id'))
 
 	device = relationship('Device', back_populates='files')
@@ -52,6 +53,6 @@ class File(Base):
 class Protocol(Base):
 	__tablename__ = 'protocols'
 	id = Column(Integer, primary_key=True, index=True)
-	filename = Column(String, index=True) # of form "filename.csv"
-	mongo_id = Column(String)
+	filename = Column(String, index=True)
+	content_id = Column(String)
 	protocols = Column(ARRAY(String))
