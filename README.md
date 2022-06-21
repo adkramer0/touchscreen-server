@@ -1,67 +1,27 @@
 # touchscreen-server
 web-interface for touchscreen project
 
-# TODO
+# Setup Guide
 
-- [ ] /api/Dockerfile
-- [x] /api/app/main.py
-	- POST: /users/register
-		- request: UserCreate
-		- response_model: User
-	- POST: /devices/register
-		- request: DeviceCreate
-		- response_model: Device
+# API
 
-- [x] /api/app/routers/users.py
-	- GET: /devices
-		- parameter: (bool) verified
-		- response_model: list(Device)
-	- GET: /users
-		- parameter: (bool) verified
-		- response_model: list(User)
-	- POST: /upload
-		- request: list(Device)
-		- Files
-		- response_model: File
-	- GET: /download/{device_id}/{extension}/{filename}
-		- response_class: FileResponse
-	- PUT: /devices/verify
-		- request: list(Device)
-		- response_model: list(Device)
-	- PUT: /users/verify
-		- request: list(User)
-		- response_model: list(User)
-	- DELETE: /users/remove
-		- request: list(User)
-		- response_model: list(User)
-	- DELETE: /devices/remove
-		- request: list(Device)
-		- response_model: list(Device)
-	- GET: /devices/protocols:
-		- request: Device
-		- response_model: list(Protocol)
-	- POST: /devices/run: 
-		- request: Protocol, Device
-		- response_model: Protocol
+## TODO
+- on database create, get any protocols from github and add them
+- email validation
+- reset password functionality for users
+	- on forgot password page
+		- user enters username
+		- generate reset token
+		- user is routed to reset password page
+		- email is sent to cooresponding user email containing reset token
+		- user copys token from email to field for token, and enters new password
+		- if token matches, reset password/destroy token
+- for protocol updates
+	- create file hash on upload and store in db.
+	- on file update
+		- update the file hash
+	- when devices poll protocols, the download new ones like usual and remove ones that are gone
+		- devices compare current hash to hashes from db, if hash is different, download new protocol and replace
 
-- [x] /api/app/routers/devices.py
-	- PUT: /status
-		- request: Device
-		- response_model: Device
-	- GET: /download/{device_id}/{extension}/{filename}
-		- response_class: FileResponse
-	- POST: /files/upload
-		- Files
-		- response_model: list(File)
-	- GET: /files
-		- response_model: list(File)
-	- DELETE: /files/remove
-		- request: list(File)
-		- respnse_model: list(File)
-	- socket: /new_protocol (data: extension, filename)
-	- socket: /run_protocol (data: filename, protocol_name, device_name, user_username)
-
-- [x] /database/db.conf
-- [ ] /frontend/*
-- [ ] /nginx/nginx.conf
+# Frontend
 
