@@ -1,6 +1,10 @@
+uvicorn
 fastapi
-jose
+python-jose
 passlib
 pydantic
 SQLAlchemy
 motor
+psycopg2
+python-multipart
+werkzeug
