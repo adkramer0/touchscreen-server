@@ -4,8 +4,8 @@ WORKDIR /src
 
 COPY ./requirements.txt /src/requirements.txt
 
-RUN pip install --no-cache-dir --upgrade -r /src/requirements.txt
+RUN pip3 install --no-cache-dir --upgrade -r /src/requirements.txt
 
 COPY ./app /src/app
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000", "--workers", "9"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
