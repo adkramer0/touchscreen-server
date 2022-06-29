@@ -6,7 +6,7 @@ class Datastore:
 
 db = Datastore()
 
-async def get_mongo():
+async def get_gridfs():
 	return db.client.gridfs
 
 async def connect():
