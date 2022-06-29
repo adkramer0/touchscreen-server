@@ -6,7 +6,7 @@ import werkzeug
 import gridfs
 from .. import dependencies, crud, schemas
 from ..utils import utils, custom_response
-
+from ..utils.ConnectionManager import device_manager
 router = APIRouter(prefix='/users', dependencies=[Depends(dependencies.user_authorized)])
 
 @router.get('/whoami', response_model=schemas.User)
@@ -101,11 +101,34 @@ async def remove_protocols(protocols: list[schemas.Protocol], fs: AsyncIOMotorGr
 async def get_protocols(session: Session = Depends(dependencies.get_session)):
 	protocols = crud.get_protocols(session)
 	return protocols
+
+@router.get('/devices/active', response_model=list[schemas.DeviceName])
+async def get_active_devices(session: Session = Depends(dependencies.get_session)):
+	devices = []
+	for device_id in list(device_manager.active_connections.keys()):
+		device = crud.get_device(session, schemas.DeviceID(id=device_id))
+		if device != None:
+			devices.append(device)
+	return devices
+
+@router.post('/devices/run')
+async def run_protocol(protocol: schemas.ProtocolRun, session: Session = Depends(dependencies.get_session), user: schemas.User = Depends(dependencies.user_authorized)):
+	stored_protocol = crud.get_protocol(session, protocol.id)
+	if protocol.filename != stored_protocol.filename or protocol.protocol not in stored_protocol.protocols:
+		raise HTTPException(status_code=409, detail='specified filename or protocol name does not exist')
+	data = {'filename': protocol.filename, 'protocol': protocol.protocol, 'experimenter': user.username}
+	event = 'run'
+	await device_manager.broadcast(event, data, protocol.devices)
+	return
+
+@router.post('/devices/stop')
+async def stop_protocol(devices: list[schemas.DeviceName]):
+	data = {}
+	event = 'stop'
+	await device_manager.broadcast(event, data, devices)
+	return
 """
-@router.post('devices/run')
-async def run_protocol(protocol: str, file: schemas.File, user: schemas.User = Depends(dependencies.user_authorized), session: Session = Depends(dependencies.get_session)):
-	protocols = await utils.extract_protocols(file.local_path)
-	if protocol in protocols:
-		raise HTTPException(status_code=404, detail='protocol not found')
-	return protocol
+TODO 
+POST: devices/settings/
+	
 """
