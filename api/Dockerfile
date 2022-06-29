@@ -8,4 +8,7 @@ RUN pip3 install --no-cache-dir --upgrade -r /src/requirements.txt
 
 COPY ./app /src/app
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["gunicorn", "app.main:app", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--preload", "--log-file", "-"]
+
+#CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "9"]
+
