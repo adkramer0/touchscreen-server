@@ -49,10 +49,6 @@ async def delete_protocols(files):
 			os.remove(filename)
 
 
-def get_extension(filename: str):
-	extension = filename.split('.', 1)[1]
-	return extension
-
 async def extract_protocols(filename: str):
 	file = 'tmp_' + filename.split('.', 1)[0] # get files name without path, and without extension
 	module = pyclbr.readmodule(file) # load info on all classes in file
@@ -63,18 +59,13 @@ async def extract_protocols(filename: str):
 				protocols.append(k)
 	return protocols
 
-async def chunk_generator(grid_out):
-	while True:
-		chunk = await grid_out.readchunk()
-		if not chunk:
-			break
-		yield chunk
+
 
 def init_db():
 	session = database.SessionLocal()
 	SUPER_USER = 'admin'
 	SUPER_PASSWORD = 'admin'
-	SUPER_EMAIL = '_'
+	SUPER_EMAIL = 'admin@domain.tld'
 	verified_length = len(crud.get_users(session, True))
 	if verified_length == 0:
 		admin_schema = schemas.UserCreate(username=SUPER_USER, password=SUPER_PASSWORD, email=SUPER_EMAIL)
