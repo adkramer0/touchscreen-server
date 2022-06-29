@@ -1,16 +1,21 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request, WebSocket
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt, jws
+from jose import JWTError, jwt
 import os
 import motor.motor_asyncio
 from sqlalchemy.orm import Session
 from .data.database import SessionLocal
 from . import crud, schemas
-from .data.datastore import get_mongo
+from .data.datastore import get_gridfs
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 ALGORITHM = os.environ.get('ALGORITHM', 'HS256')
+
+class CustomOAuth2PasswordBearer(OAuth2PasswordBearer):
+    async def __call__(self, request: Request = None, websocket: WebSocket = None):
+        return await super().__call__(request or websocket)
+oauth2_scheme = CustomOAuth2PasswordBearer(tokenUrl="token")
 
 def get_session():
     session = SessionLocal()
@@ -20,7 +25,7 @@ def get_session():
         session.close()
 
 async def get_fs():
-    db = await get_mongo()
+    db = await get_gridfs()
     fs = motor.motor_asyncio.AsyncIOMotorGridFSBucket(db)
     return fs
 
