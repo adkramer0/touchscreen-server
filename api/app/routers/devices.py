@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, UploadFile, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, Depends, Request, WebSocket
+from fastapi.websockets import WebSocketDisconnect
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from sqlalchemy.orm import Session
 from bson.objectid import ObjectId
@@ -6,8 +7,12 @@ import werkzeug
 import gridfs
 from .. import dependencies, crud, schemas
 from ..utils import utils, custom_response
-
+from ..utils.ConnectionManager import device_manager
 router = APIRouter(prefix='/devices')
+
+@router.get('/whoami', response_model=schemas.DeviceID)
+async def whoami(device: schemas.DeviceID = Depends(dependencies.device_authorized)):
+	return device
 
 @router.put('/status', response_model=schemas.Device)
 async def set_status(status: str, device: schemas.DeviceID = Depends(dependencies.device_authorized), session: Session = Depends(dependencies.get_session)):
@@ -47,3 +52,16 @@ async def get_files(device: schemas.DeviceID = Depends(dependencies.device_autho
 async def get_protocols(device: schemas.DeviceID = Depends(dependencies.device_authorized), session: Session = Depends(dependencies.get_session)):
 	files = crud.get_protocols(session)
 	return files
+
+@router.websocket('/stream')
+async def websocket_devices(websocket: WebSocket, device_id: schemas.DeviceID = Depends(dependencies.device_authorized), session: Session = Depends(dependencies.get_session)):
+	await device_manager.connect(websocket, device_id, session)
+	device = crud.get_device(session, device_id)
+	try:
+		while True:
+			data = await websocket.receive_json()
+			device.status = data.get('status')
+			session.commit()
+			session.refresh(device)
+	except WebSocketDisconnect:
+		device_manager.disconnect(device_id, session)
