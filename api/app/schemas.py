@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 class UserBase(BaseModel):
 	username: str
 
 class UserCreate(UserBase):
 	password: str 
-	email: str
+	email: EmailStr
 
 class User(UserBase):
 	id: int 
@@ -44,6 +44,7 @@ class Device(DeviceBase):
 	id: int 
 	verified: bool
 	status: str | None = None
+	online: bool
 	files: list[File] = []
 
 	class Config:
@@ -53,7 +54,8 @@ class DeviceNoFiles(DeviceBase):
 	id: int
 	verified: bool
 	status: str | None = None
-
+	online: bool
+	
 	class Config:
 		orm_mode = True
 
@@ -79,6 +81,11 @@ class Protocol(ProtocolBase):
 	class Config:
 		orm_mode = True
 
+class ProtocolRun(BaseModel):
+	id: int
+	filename: str
+	protocol: str
+	devices: list[DeviceName]
 
 class Token(BaseModel):
     access_token: str
