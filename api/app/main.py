@@ -24,7 +24,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessi
 	try:
 		client = form_data.scopes[0]
 	except IndexError:
-		client = 'device' # temporary for testing with docs
+		client = 'user' # temporary for testing with docs
 	login_exception = HTTPException(
         status_code=401,
         detail="Incorrect username or password",
@@ -55,7 +55,7 @@ def register_user(user: schemas.UserCreate, session: Session = Depends(dependenc
 	return new_user
 
 @app.post('/devices/register', response_model=schemas.DeviceNoFiles)
-def register_user(device: schemas.DeviceCreate, session: Session = Depends(dependencies.get_session)):
+def register_device(device: schemas.DeviceCreate, session: Session = Depends(dependencies.get_session)):
 	try:
 		new_device = crud.create_device(session, device)
 	except IntegrityError:
