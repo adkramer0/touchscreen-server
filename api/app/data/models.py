@@ -18,6 +18,7 @@ class User(Base):
 	def __init__(self, username: str, password: str, email: str, verified: bool = False):
 		self.username = username
 		self.password = pwd_context.hash(password)
+		self.email = email
 		self.verified = verified
 
 	def verify_password(self, password):
@@ -29,8 +30,8 @@ class Device(Base):
 	name = Column(String)
 	password = Column(String)
 	verified = Column(Boolean, default=False, index=True)
-	status = Column(String, index=True)
-
+	status = Column(String)
+	online = Column(Boolean, default=False, index=True)
 	files = relationship('File', back_populates='device')
 
 	def __init__(self, name: str, password: str, verified: bool = False):
