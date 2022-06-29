@@ -1,8 +1,9 @@
-uvicorn
+uvicorn[standard]
+gunicorn
 fastapi
 python-jose
 passlib
-pydantic
+pydantic[email]
 SQLAlchemy
 motor
 psycopg2
