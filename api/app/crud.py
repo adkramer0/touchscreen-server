@@ -88,9 +88,6 @@ def delete_device(session: Session, device: schemas.DeviceID):
 def get_file(session: Session, file_id: int):
 	return session.query(models.File).filter_by(id=file_id).first()
 
-def get_file_by_name(session: Session, filename: str, device_id: int):
-	return session.query(models.File).filter_by(device_id=device_id, filename=filename).first()
-
 def get_files(session: Session, device: schemas.DeviceID):
 	return session.query(models.File).filter_by(device_id=device.id).all()
 
@@ -101,12 +98,6 @@ def create_file(session: Session, file: schemas.FileCreate, device: schemas.Devi
 	session.refresh(db_file)
 	return db_file
 
-def create_files(session: Session, files: list[schemas.FileCreate], device_id: int):
-	files_lst = []
-	for file in files:
-		db_file = create_file(session, file, device_id)
-		files_lst.append(db_file)
-	return files_lst
 
 def delete_file(session: Session, file_id: int):
 	file = get_file(session, file_id)
