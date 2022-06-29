@@ -1,5 +1,4 @@
 from fastapi.responses import Response
-import anyio
 import mimetypes
 import os
 from motor.motor_asyncio import AsyncIOMotorGridOut
