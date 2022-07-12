@@ -34,13 +34,15 @@ services:
             - SECRET_KEY=super_secret_key
             - SQLALCHEMY_DATABASE_URL=postgresql+psycopg2://touchscreen:super_secret_password@database:5432/touchscreenDB
             - MONGO_DATABASE_HOST=mongodb://root:super_secret_password@datastore:27017
-#  frontend:
-#    build: ./frontend
-#    container_name: ./frontend
-#    restart: unless-stopped
-#    depends_on:
-#      - api
-#      - frontend
+    frontend:
+        build: ./frontend
+        container_name: frontend
+        restart: unless-stopped
+        depends_on:
+            - api
+        expose:
+            - "8080"
+
     nginx:
         image: nginx:alpine
         container_name: nginx
