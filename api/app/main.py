@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
@@ -18,13 +19,16 @@ app.add_event_handler('shutdown', datastore.disconnect)
 models.Base.metadata.create_all(bind=database.engine)
 utils.init_db()
 
+@app.get('/users/whoami', response_model=schemas.User)
+async def whoami(user: schemas.User = Depends(dependencies.current_user)):
+	return user
 
 @app.post('/token', response_model=schemas.Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(dependencies.get_session)):
 	try:
 		client = form_data.scopes[0]
 	except IndexError:
-		client = 'user' # temporary for testing with docs
+		client = ''
 	login_exception = HTTPException(
         status_code=401,
         detail="Incorrect username or password",
@@ -42,8 +46,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), session: Sessi
 		access_token = utils.create_access_token(data={'sub': client+':'+str(device.id)})
 	else:
 		raise HTTPException(status_code=400, detail='client scope unrecognized')
-	return {"access_token": access_token, "token_type": "bearer"}
-
+	response = JSONResponse(content={'message': 'login successful'})
+	response.set_cookie('Authorization', value=f'Bearer {access_token}', httponly=True, max_age=43200, expires=43200, samesite='Lax', secure=False)
+	return response
+@app.get('/token/remove')
+def remove_token():
+	response = JSONResponse(content={'message': 'logout successful'})
+	response.delete_cookie("Authorization")
+	return response
 @app.post('/users/register', response_model=schemas.User)
 def register_user(user: schemas.UserCreate, session: Session = Depends(dependencies.get_session)):
 	if user.username == 'admin':
