@@ -1,7 +1,20 @@
 # touchscreen-server
 web-interface for touchscreen project
 
+--- 
+
 # Setup Guide
+- device/server congig
+	- open ports, etc.
+- set web url or ip in /frontend/src/main.js
+- run.sh
+- register first user
+- sign in with creds: u: admin, p: admin
+	- verify first user
+- either sign in with new user and remove admin or run.sh (both get rid of admin once registered user)
+- good to go!
+
+---
 
 # API
 
@@ -31,5 +44,13 @@ web-interface for touchscreen project
 		- dependencies
 		- utils
 
+---
+
 # Frontend
 
+## TODO
+- handle axios errors
+- display accurate status (i.e. running "protocol", updating) to active device list...
+	- prevent new tasks from being added while running protocols
+
+---
