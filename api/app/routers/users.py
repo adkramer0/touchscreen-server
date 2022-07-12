@@ -9,13 +9,12 @@ from ..utils import utils, custom_response
 from ..utils.ConnectionManager import device_manager
 router = APIRouter(prefix='/users', dependencies=[Depends(dependencies.user_authorized)])
 
-@router.get('/whoami', response_model=schemas.User)
-async def whoami(user: schemas.User = Depends(dependencies.user_authorized)):
-	return user
 
-@router.get('/devices', response_model=list[schemas.Device])
+@router.get('/devices', response_model=list[schemas.DeviceNoFiles])
 async def get_devices(verified: bool, session: Session = Depends(dependencies.get_session)):
 	 return crud.get_devices(session, verified)
+	 
+
 
 @router.get('/', response_model=list[schemas.User])
 async def get_users(verified: bool, session: Session = Depends(dependencies.get_session)):
@@ -127,6 +126,13 @@ async def stop_protocol(devices: list[schemas.DeviceName]):
 	event = 'stop'
 	await device_manager.broadcast(event, data, devices)
 	return
+
+@router.get('/devices/{id}', response_model=schemas.Device)
+async def get_device_files(id: int, session: Session = Depends(dependencies.get_session)):
+	device = crud.get_device(session, schemas.DeviceID(id=id))
+	if not device:
+		raise HTTPException(status_code=404, detail='Device not found')
+	return device
 """
 TODO 
 POST: devices/settings/
