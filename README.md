@@ -4,9 +4,10 @@ web-interface for touchscreen project
 --- 
 
 # Setup Guide
-- device/server congig
+- device/server config
 	- open ports, etc.
 - set web url or ip in /frontend/src/main.js
+- set all env vars in docker-compose.yml and in /database/db.conf
 - run.sh
 - register first user
 - sign in with creds: u: admin, p: admin
@@ -50,7 +51,9 @@ web-interface for touchscreen project
 
 ## TODO
 - handle axios errors
+	- 401 logout for all
 - display accurate status (i.e. running "protocol", updating) to active device list...
 	- prevent new tasks from being added while running protocols
+- user websockets
 
 ---
