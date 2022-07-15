@@ -126,6 +126,13 @@ async def stop_protocol(devices: list[schemas.DeviceName]):
 	event = 'stop'
 	await device_manager.broadcast(event, data, devices)
 	return
+@router.post('/devices/settings/{cmd}')
+async def update_settings(cmd: str, devices: list[schemas.DeviceName]):
+	if cmd not in ('quit', 'menu', 'update', 'shutdown', 'restart'):
+		raise HTTPException(status_code=400, detail=f'Unknown cmd: {cmd}')
+	data = {}
+	await device_manager.broadcast(cmd, data, devices)
+	return
 
 @router.get('/devices/{id}', response_model=schemas.Device)
 async def get_device_files(id: int, session: Session = Depends(dependencies.get_session)):
