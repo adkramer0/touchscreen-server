@@ -18,6 +18,14 @@
 					<input v-model="name" type="text" class="form-control" placeholder="New Device Name">
 					<button :disabled="!name" @click="setDeviceName" class="btn btn-outline-info" type="button">Rename</button>
 				</div>
+				<div v-if="deviceState === Object(deviceState) && deviceState.online" class="btn-group btn-group-lg mb-3" role="group">
+					<button @click="actionSetting('menu')" type="button" class="btn btn-outline-info">Menu Mode</button>
+					<button @click="actionSetting('quit')" type="button" class="btn btn-outline-danger">Quit</button>
+					<button @click="actionSetting('update')" type="button" class="btn btn-outline-warning">Update</button>
+					<button @click="actionSetting('shutdown')" type="button" class="btn btn-outline-danger">Shutdown</button>
+					<button @click="actionSetting('restart')" type="button" class="btn btn-outline-warning">Restart</button>
+				</div>
+
 			</div>
 		</div>
 	</section>
@@ -40,9 +48,14 @@
 			...mapGetters({deviceState: 'stateDevice'}),
 		},
 		methods: {
-			...mapActions(['getDevice', 'nameDevice']),
+			...mapActions(['getDevice', 'nameDevice', 'deviceSettings']),
 			async setDeviceName() {
 				await this.nameDevice({"id": this.id, "name": this.name});
+				await this.getDevice(this.id);
+			},
+			async actionSetting(cmd) {
+				let body = [{"id": this.id, "name": this.deviceState.name}];
+				await this.deviceSettings({setting: cmd, devices: body });
 				await this.getDevice(this.id);
 			},
 		},

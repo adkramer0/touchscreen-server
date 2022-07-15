@@ -57,6 +57,10 @@ const actions = {
 	async removeDeviceFiles({}, files) {
 		await axios.delete('users/remove/files', {data: files});
 	},
+	async deviceSettings({dispatch}, { setting, devices }) {
+		await axios.post(`users/devices/settings/${setting}`, devices);
+		await dispatch('getActiveDevices');
+	},
 	resetDeviceState({commit}) {
 		commit('resetDevices');
 	},
