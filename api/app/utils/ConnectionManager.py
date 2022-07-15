@@ -25,7 +25,8 @@ class ConnectionManager:
 	async def send_message(self, data: dict, device: schemas.DeviceName):
 		data.update({'subject': device.name})
 		ws = self.active_connections.get(device.id)
-		await ws.send_json(data)
+		if ws != None:
+			await ws.send_json(data)
 
 	async def broadcast(self, event: str, data: dict, devices: list[schemas.DeviceName]):
 		data.update({'event': event})
