@@ -85,7 +85,7 @@ class ProtocolRun(BaseModel):
 	id: int
 	filename: str
 	protocol: str
-	devices: list[DeviceName]
+	devices: list[DeviceNoFiles]
 
 class Token(BaseModel):
     access_token: str

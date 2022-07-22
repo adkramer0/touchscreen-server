@@ -15,7 +15,7 @@ async def whoami(device: schemas.DeviceID = Depends(dependencies.device_authoriz
 	return device
 
 @router.put('/status', response_model=schemas.Device)
-async def set_status(status: str, device: schemas.DeviceID = Depends(dependencies.device_authorized), session: Session = Depends(dependencies.get_session)):
+async def set_status(status: str | None = None, device: schemas.DeviceID = Depends(dependencies.device_authorized), session: Session = Depends(dependencies.get_session)):
 	device = crud.get_device(session, device)
 	device.status = status
 	session.commit()
