@@ -1,12 +1,16 @@
-from fastapi import APIRouter, HTTPException, UploadFile, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, Depends, WebSocket
+from fastapi.websockets import WebSocketDisconnect
 from sqlalchemy.orm import Session
+from sqlalchemy import event
 from motor.motor_asyncio import AsyncIOMotorGridFSBucket
 from bson.objectid import ObjectId
 import werkzeug
 import gridfs
+from unsync import unsync
+from ..data.models import User, Device, File, Protocol
 from .. import dependencies, crud, schemas
 from ..utils import utils, custom_response
-from ..utils.ConnectionManager import device_manager
+from ..utils.ConnectionManager import device_manager, user_manager
 router = APIRouter(prefix='/users', dependencies=[Depends(dependencies.user_authorized)])
 
 
@@ -101,7 +105,7 @@ async def get_protocols(session: Session = Depends(dependencies.get_session)):
 	protocols = crud.get_protocols(session)
 	return protocols
 
-@router.get('/devices/active', response_model=list[schemas.DeviceName])
+@router.get('/devices/active', response_model=list[schemas.DeviceNoFiles])
 async def get_active_devices(session: Session = Depends(dependencies.get_session)):
 	devices = []
 	for device_id in list(device_manager.active_connections.keys()):
@@ -121,7 +125,7 @@ async def run_protocol(protocol: schemas.ProtocolRun, session: Session = Depends
 	return
 
 @router.post('/devices/stop')
-async def stop_protocol(devices: list[schemas.DeviceName]):
+async def stop_protocol(devices: list[schemas.DeviceNoFiles]):
 	data = {}
 	event = 'stop'
 	await device_manager.broadcast(event, data, devices)
@@ -140,8 +144,41 @@ async def get_device_files(id: int, session: Session = Depends(dependencies.get_
 	if not device:
 		raise HTTPException(status_code=404, detail='Device not found')
 	return device
-"""
-TODO 
-POST: devices/settings/
-	
-"""
+
+@router.websocket('/stream')
+async def websocket_users(websocket: WebSocket, session: Session = Depends(dependencies.get_session)):
+	await user_manager.connect(websocket)
+	try:
+		while True:
+			data = await websocket.receive_json()
+	except WebSocketDisconnect:
+		user_manager.disconnect(websocket)
+
+
+
+@event.listens_for(User, 'after_delete')
+@event.listens_for(User, 'after_update')
+@event.listens_for(User, 'after_insert')
+@unsync
+async def user_model_changed(mapper, connection, target):
+	await user_manager.broadcast(event='update', data={'target': 'users'})
+
+@event.listens_for(Device, 'after_delete')
+@event.listens_for(Device, 'after_update')
+@event.listens_for(Device, 'after_insert')
+@unsync
+async def device_model_changed(mapper, connection, target):
+	await user_manager.broadcast(event='update', data={'target': 'devices'})
+
+@event.listens_for(File, 'after_delete')
+@event.listens_for(File, 'after_update')
+@event.listens_for(File, 'after_insert')
+@unsync
+async def file_model_changed(mapper, connection, target):
+	await user_manager.broadcast(event='update', data={'target': 'files'})
+@event.listens_for(Protocol, 'after_delete')
+@event.listens_for(Protocol, 'after_update')
+@event.listens_for(Protocol, 'after_insert')
+@unsync
+async def protocol_model_changed(mapper, connection, target):
+	await user_manager.broadcast(event='update', data={'target': 'protocols'})

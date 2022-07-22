@@ -9,3 +9,4 @@ motor
 psycopg2
 python-multipart
 werkzeug
+unsync
