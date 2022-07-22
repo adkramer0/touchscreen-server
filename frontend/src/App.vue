@@ -2,6 +2,7 @@
   <div id="app">
     <NavBar/>
     <div class="container">
+      <Flash v-for="(flash, index) in flashes" v-bind:status_code="flash.status_code" v-bind:message="flash.message" v-bind:index="index" v-bind:key="index"/>
       <router-view/>
     </div>
   </div>
@@ -9,10 +10,16 @@
 
 <script>
   import NavBar from '@/components/NavBar.vue';
+  import Flash from '@/components/Flash.vue';
+  import {mapGetters} from 'vuex';
   export default {
     components: {
       NavBar,
+      Flash,
     },
+    computed: {
+      ...mapGetters({flashes: 'flashes'}),
+    }
   };
 </script>
 <style>

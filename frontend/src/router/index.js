@@ -82,6 +82,7 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
+  store.dispatch('clearFlashes');
   document.title = to.meta.title || 'Touchscreen';
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (store.getters['isAuthenticated']) {
