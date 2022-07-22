@@ -61,12 +61,15 @@
 						<thead>
 							<tr>
 								<th>Name</th>
+								<th>Status</th>
 								<th>Select</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr v-for="device in activeDevices" :key="device.id">
 								<td>{{ device.name }}</td>
+								<td v-if="device.status">{{ device.status }}</td>
+								<td v-else></td>
 								<td><input class="form-check-input" :value="device" v-model="selectedDevices" type="checkbox"></td>
 							</tr>
 						</tbody>
@@ -96,6 +99,19 @@
 		async created() {
 			await this.getProtocols();
 			await this.getActiveDevices();
+			this.ws = new WebSocket('ws://localhost/api/users/stream');
+			this.ws.onmessage = async (event) => {
+				let data = JSON.parse(event.data);
+				if (data.event === "update") {
+					if (data.target === "protocols")
+						await this.getProtocols();
+					if (data.target === "devices")
+						await this.getActiveDevices();
+				}
+			}
+		},
+		destroyed() {
+			this.ws.close();
 		},
 		computed: {
 			...mapGetters({files: 'stateProtocols', activeDevices: 'stateActiveDevices'}),

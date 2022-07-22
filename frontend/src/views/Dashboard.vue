@@ -67,8 +67,18 @@
 	import {mapActions, mapGetters} from 'vuex';
 	export default {
 		name: 'Dashboard',
-		created: function() {
-			return this.getDevices()
+		async created() {
+			await this.getDevices()
+			this.ws = new WebSocket('ws://localhost/api/users/stream');
+			this.ws.onmessage = async (event) => {
+				let data = JSON.parse(event.data);
+				if (data.event === "update" && data.target === "devices") {
+					await this.getDevices();
+				}
+			}
+		},
+		destroyed() {
+			this.ws.close();
 		},
 		computed: {
 			...mapGetters({devices: 'stateDevices'}),

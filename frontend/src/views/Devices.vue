@@ -90,6 +90,17 @@
 		async created() {
 			await this.getDevices();
 			await this.getUnverifiedDevices();
+			this.ws = new WebSocket('ws://localhost/api/users/stream');
+			this.ws.onmessage = async (event) => {
+				let data = JSON.parse(event.data);
+				if (data.event === "update" && data.target == "devices") {
+					await this.getDevices();
+					await this.getUnverifiedDevices();
+				}
+			}
+		},
+		destroyed() {
+			this.ws.close();
 		},
 		computed: {
 			...mapGetters({devicesState: 'stateDevices', unverifiedDevicesState: 'stateUnverifiedDevices'}),

@@ -92,6 +92,17 @@
 		async created() {
 			await this.getUsers();
 			await this.getUnverifiedUsers();
+			this.ws = new WebSocket('ws://localhost/api/users/stream');
+			this.ws.onmessage = async (event) => {
+				let data = JSON.parse(event.data);
+				if (data.event === "update" && data.target == "users") {
+					await this.getUsers();
+					await this.getUnverifiedUsers();
+				}
+			}
+		},
+		destroyed() {
+			this.ws.close();
 		},
 		computed: {
 			...mapGetters({usersState: 'stateUsers', unverifiedUsersState: 'stateUnverifiedUsers', currentUser: 'stateUser'}),
