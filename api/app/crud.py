@@ -106,6 +106,10 @@ def delete_file(session: Session, file_id: int):
 ### PROTOCOL CRUD ###
 def get_protocol(session: Session, protocol_id: int):
 	return session.query(models.Protocol).filter_by(id=protocol_id).first()
+
+def protocol_exists(session: Session, filename: str) -> bool:
+	protocol =  session.query(models.Protocol).filter_by(filename=filename).first()
+	return not not protocol
 def get_protocols(session: Session):
 	return session.query(models.Protocol).all()
 def create_protocol(session: Session, protocol: schemas.ProtocolCreate):

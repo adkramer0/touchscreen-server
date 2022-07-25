@@ -14,10 +14,11 @@ app.include_router(users.router)
 app.include_router(devices.router)
 
 app.add_event_handler('startup', datastore.connect)
+app.add_event_handler('startup', utils.init_db)
 app.add_event_handler('shutdown', datastore.disconnect)
 
-models.Base.metadata.create_all(bind=database.engine)
-utils.init_db()
+
+
 
 @app.get('/users/whoami', response_model=schemas.User)
 async def whoami(user: schemas.User = Depends(dependencies.current_user)):

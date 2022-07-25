@@ -4,6 +4,8 @@ WORKDIR /src
 
 COPY ./requirements.txt /src/requirements.txt
 
+RUN apt-get update && apt-get install subversion
+
 RUN pip3 install --no-cache-dir --upgrade -r /src/requirements.txt
 
 COPY ./app /src/app

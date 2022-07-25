@@ -71,6 +71,7 @@ class ProtocolBase(BaseModel):
 	filename: str
 	content_id: str
 	protocols: list[str]
+	hash: str
 
 class ProtocolCreate(ProtocolBase):
 	pass 

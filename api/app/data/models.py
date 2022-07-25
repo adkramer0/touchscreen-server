@@ -54,6 +54,7 @@ class File(Base):
 class Protocol(Base):
 	__tablename__ = 'protocols'
 	id = Column(Integer, primary_key=True, index=True)
-	filename = Column(String, index=True)
+	filename = Column(String, index=True, unique=True)
 	content_id = Column(String)
 	protocols = Column(ARRAY(String))
+	hash = Column(String)

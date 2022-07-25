@@ -28,14 +28,21 @@ async def get_users(verified: bool, session: Session = Depends(dependencies.get_
 @router.post('/upload', response_model=list[schemas.Protocol])
 async def upload_protocols(files: list[UploadFile], session: Session = Depends(dependencies.get_session), fs: AsyncIOMotorGridFSBucket = Depends(dependencies.get_fs)):
 	files_created = []
+	exceptions = []
 	for file in files:
 		file.filename = werkzeug.utils.secure_filename(file.filename)
+		if crud.protocol_exists(session, file.filename):
+			exceptions.append(file.filename)
+	if exceptions:
+		f = ', '.join(exceptions)
+		raise HTTPException(status_code=409, detail=f'file{"s" if len(exceptions) > 1 else ""}: {f} already exist{"s" if len(exceptions) == 1 else ""}')
 	await utils.save_protocols(files)
 	for file in files:
 		file_id = await fs.upload_from_stream(file.filename, file.file)
 		file_id = str(file_id)
+		fhash = await utils.file_hash(file.file)
 		protocols = await utils.extract_protocols(file.filename)
-		file_created = schemas.ProtocolCreate(filename=file.filename, content_id=file_id, protocols=protocols)
+		file_created = schemas.ProtocolCreate(filename=file.filename, content_id=file_id, protocols=protocols, hash=fhash)
 		new_file = crud.create_protocol(session, file_created)
 		files_created.append(new_file)
 	await utils.delete_protocols(files)

@@ -1,15 +1,17 @@
 from datetime import datetime, timedelta
 from jose import jwt
-from .. import crud, schemas
 from sqlalchemy.orm import Session
 import os
 import shutil
 import pyclbr
-from ..data import database
+import svn.remote
+import werkzeug
+import hashlib
 
+from ..data import database, models
+from .. import crud, schemas, dependencies
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
-
 async def authenticate_user(session: Session, username: str, password: str):
 	user = crud.get_user_by_username(session, username)
 	if not user:
@@ -49,8 +51,8 @@ async def delete_protocols(files):
 			os.remove(filename)
 
 
-async def extract_protocols(filename: str):
-	file = 'tmp_' + filename.split('.', 1)[0] # get files name without path, and without extension
+async def extract_protocols(filename: str, no_tmp: bool = False):
+	file = 'tmp_' + filename.split('.', 1)[0] if not no_tmp else filename.rsplit('.', 1)[0] # get files name without path, and without extension
 	module = pyclbr.readmodule(file) # load info on all classes in file
 	protocols = []
 	for k, v in module.items(): # check if base class is Protocol in all classes
@@ -59,9 +61,13 @@ async def extract_protocols(filename: str):
 				protocols.append(k)
 	return protocols
 
-
-
-def init_db():
+async def file_hash(file):
+	file.seek(0)
+	fhash = hashlib.md5(file.read()).hexdigest()
+	file.seek(0)
+	return fhash
+async def init_db():
+	models.Base.metadata.create_all(bind=database.engine)
 	session = database.SessionLocal()
 	SUPER_USER = 'admin'
 	SUPER_PASSWORD = 'admin'
@@ -75,5 +81,25 @@ def init_db():
 		admin = crud.get_user_by_username(session, SUPER_USER)
 		if admin:
 			crud.delete_user(session, schemas.UserID(id=admin.id))
+	if len(crud.get_protocols(session)) == 0:
+		# get datastore
+		fs = await dependencies.get_fs()
+		# use svn to get the protocols folder from the main branch
+		r = svn.remote.RemoteClient('https://github.com/moormanlab/touchscreen/trunk/protocols')
+		r.export(os.path.join(os.getcwd(), 'protocols'))
+		for filename in os.listdir('protocols'):
+			fname = werkzeug.utils.secure_filename(filename)
+			path = os.path.join('protocols', fname)
+			# read protocol and save it to gridfs bucket
+			with open(os.path.join('protocols', filename), 'rb') as f:
+				file_id = await fs.upload_from_stream(fname, f.read())
+				f.seek(0)
+				fhash = await file_hash(f)
+			file_id = str(file_id)
+			protocols = await extract_protocols('protocols.'+filename, no_tmp=True)
+			file_created = schemas.ProtocolCreate(filename=fname, content_id=file_id, protocols=protocols, hash=fhash)
+			new_file = crud.create_protocol(session, file_created)
+		shutil.rmtree(os.path.join(os.getcwd(), 'protocols'))
+
 	session.close()
 
